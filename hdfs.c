@@ -16,12 +16,13 @@ typedef struct FileMetadata
     __time_t created;
     __time_t modified;
     char *permissions;
+    int blocks[MAX_BLOCKS];
 } fm;
 
 typedef struct BlockMetadata
 {
     char *blockID;
-    char **datanode;
+    int data_node_ids[MAX_DATA_NODES];
     int size;
 } bm;
 
@@ -67,4 +68,18 @@ void addFile(NameNode *nn, char *filename, char *path)
     int size = lstat(filename, &file_info);
     newFile.size = size;
     nn->files[nn->num_files++] = newFile;
+}
+
+void allocateBlock(NameNode *nn, int file_index)
+{
+    bm newBlock;
+    newBlock.blockID = nn->num_blocks++;
+
+    for (int i = 0; i < 3; ++i)
+    {
+        newBlock.data_node_ids[i] = i % nn->num_data_nodes;
+    }
+
+    nn->blocks[file_index] = newBlock;
+    nn->files[file_index].blocks[nn->files[file_index].size++] = newBlock.blockID;
 }
